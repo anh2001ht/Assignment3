@@ -28,7 +28,7 @@
                                 <a class="nav-link text-dark" asp-area="" asp-controller="Events" asp-action="Index">📅 Events</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-controller="Categories" asp-action="Index">📂 Categories</a>
+                                <a class="nav-link text-dark" asp-area="" asp-controller="EventCategories" asp-action="Index">📂 Categories</a>
                             </li>
                             @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
                             {

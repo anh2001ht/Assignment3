@@ -7,6 +7,7 @@ using Assignment3.Models;
 namespace Assignment3.Controllers
 {
     [Authorize(Roles = "Admin,EventManager")]
+    [Route("EventCategories")]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -17,6 +18,8 @@ namespace Assignment3.Controllers
         }
 
         // GET: Categories
+        [Route("")]
+        [Route("Index")]
         public async Task<IActionResult> Index()
         {
             var categories = await _context.EventCategories
@@ -27,6 +30,7 @@ namespace Assignment3.Controllers
         }
 
         // GET: Categories/Details/5
+        [Route("Details/{id:int}")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -42,6 +46,7 @@ namespace Assignment3.Controllers
         }
 
         // GET: Categories/Create
+        [Route("Create")]
         public IActionResult Create()
         {
             return View();
@@ -49,6 +54,7 @@ namespace Assignment3.Controllers
 
         // POST: Categories/Create
         [HttpPost]
+        [Route("Create")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategoryName")] EventCategory category)
         {
@@ -73,6 +79,7 @@ namespace Assignment3.Controllers
         }
 
         // GET: Categories/Edit/5
+        [Route("Edit/{id:int}")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -85,6 +92,7 @@ namespace Assignment3.Controllers
 
         // POST: Categories/Edit/5
         [HttpPost]
+        [Route("Edit/{id:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("CategoryID,CategoryName")] EventCategory category)
         {
@@ -122,6 +130,7 @@ namespace Assignment3.Controllers
         }
 
         // GET: Categories/Delete/5
+        [Route("Delete/{id:int}")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -137,6 +146,7 @@ namespace Assignment3.Controllers
 
         // POST: Categories/Delete/5
         [HttpPost, ActionName("Delete")]
+        [Route("Delete/{id:int}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {

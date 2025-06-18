@@ -1,0 +1,175 @@
+@model List<Assignment3.ViewModels.EventViewModel>
+
+@{
+    ViewData["Title"] = "My Registrations";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-check"></i> My Event Registrations</h2>
+        <a asp-controller="Events" asp-action="Index" class="btn btn-primary">
+            <i class="fas fa-search"></i> Browse Events
+        </a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row">
+            @foreach (var registration in Model)
+            {
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 @(registration.StartTime <= DateTime.Now ? "border-secondary" : "border-primary")">
+                        @if (registration.StartTime <= DateTime.Now)
+                        {
+                            <div class="card-header bg-secondary text-white">
+                                <i class="fas fa-clock"></i> Past Event
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-header bg-primary text-white">
+                                <i class="fas fa-calendar-alt"></i> Upcoming Event
+                            </div>
+                        }
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">@registration.Title</h5>
+                            
+                            @if (!string.IsNullOrEmpty(registration.Description))
+                            {
+                                <p class="card-text text-muted">
+                                    @(registration.Description.Length > 100 ? registration.Description.Substring(0, 100) + "..." : registration.Description)
+                                </p>
+                            }
+
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-folder"></i> @(registration.CategoryName ?? "No Category")
+                                </small>
+                            </div>
+
+                            <div class="mb-2">
+                                <i class="fas fa-clock text-primary"></i>
+                                <strong>Start:</strong> @registration.StartTime?.ToString("MMM dd, yyyy - hh:mm tt")
+                            </div>
+
+                            <div class="mb-2">
+                                <i class="fas fa-clock text-danger"></i>
+                                <strong>End:</strong> @registration.EndTime?.ToString("MMM dd, yyyy - hh:mm tt")
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(registration.Location))
+                            {
+                                <div class="mb-2">
+                                    <i class="fas fa-map-marker-alt text-info"></i>
+                                    <strong>Location:</strong> @registration.Location
+                                </div>
+                            }
+
+                            <div class="mb-3">
+                                <i class="fas fa-users text-success"></i>
+                                <strong>Attendees:</strong> @registration.AttendeeCount
+                            </div>
+
+                            @if (registration.StartTime > DateTime.Now)
+                            {
+                                <div class="alert alert-success py-2">
+                                    <i class="fas fa-check-circle"></i> You are registered for this event
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="alert alert-secondary py-2">
+                                    <i class="fas fa-history"></i> This event has already occurred
+                                </div>
+                            }
+                        </div>
+
+                        <div class="card-footer bg-light">
+                            <div class="btn-group w-100" role="group">
+                                <a asp-controller="Events" asp-action="Details" asp-route-id="@registration.EventID" 
+                                   class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Details
+                                </a>
+                                
+                                @if (registration.StartTime > DateTime.Now)
+                                {
+                                    <a asp-controller="Registration" asp-action="UpdateInfo" asp-route-eventId="@registration.EventID" 
+                                       class="btn btn-outline-secondary">
+                                        <i class="fas fa-edit"></i> Update Info
+                                    </a>
+
+                                    <form asp-controller="Registration" asp-action="Unregister" asp-route-id="@registration.EventID" 
+                                          method="post" style="display: inline;" 
+                                          onsubmit="return confirm('Are you sure you want to unregister from this event?')">
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            <i class="fas fa-user-times"></i> Unregister
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h5><i class="fas fa-chart-bar"></i> Registration Summary</h5>
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <div class="statistic">
+                                    <h3 class="text-primary">@Model.Count</h3>
+                                    <p class="text-muted">Total Registrations</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="statistic">
+                                    <h3 class="text-success">@Model.Count(e => e.StartTime > DateTime.Now)</h3>
+                                    <p class="text-muted">Upcoming Events</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="statistic">
+                                    <h3 class="text-secondary">@Model.Count(e => e.StartTime <= DateTime.Now)</h3>
+                                    <p class="text-muted">Past Events</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-calendar-times fa-5x text-muted"></i>
+            </div>
+            <h3 class="text-muted">No Event Registrations</h3>
+            <p class="lead text-muted">You haven't registered for any events yet.</p>
+            <a asp-controller="Events" asp-action="Index" class="btn btn-primary btn-lg">
+                <i class="fas fa-search"></i> Browse Available Events
+            </a>
+        </div>
+    }
+</div>
+
+<style>
+    .statistic {
+        padding: 20px;
+    }
+    .statistic h3 {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .card-footer .btn-group .btn {
+        flex: 1;
+    }
+</style> 

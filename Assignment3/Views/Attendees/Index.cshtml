@@ -1,0 +1,210 @@
+@model IEnumerable<Assignment3.Models.Attendee>
+
+@{
+    ViewData["Title"] = "All Attendees";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-users"></i> All Attendees</h2>
+            <p class="text-muted">Manage event attendees across all events</p>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="/" class="btn btn-outline-secondary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+    </div>
+
+    <!-- Attendee Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Count()</h3>
+                    <p class="mb-0">Total Attendees</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Select(a => a.EventID).Distinct().Count()</h3>
+                    <p class="mb-0">Events with Attendees</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Where(a => a.RegistrationTime >= DateTime.Today).Count()</h3>
+                    <p class="mb-0">Today's Registrations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Where(a => a.RegistrationTime >= DateTime.Today.AddDays(-7)).Count()</h3>
+                    <p class="mb-0">This Week</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendees Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-table"></i> All Event Attendees</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="attendeesTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th><i class="fas fa-user"></i> Attendee</th>
+                                <th class="text-center"><i class="fas fa-envelope"></i> Email</th>
+                                <th class="text-center"><i class="fas fa-calendar-alt"></i> Event</th>
+                                <th class="text-center"><i class="fas fa-clock"></i> Registration Date</th>
+                                <th class="text-center"><i class="fas fa-user-tag"></i> User Account</th>
+                                <th class="text-center"><i class="fas fa-cog"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var attendee in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center mr-3" 
+                                                 style="width: 40px; height: 40px; font-weight: bold;">
+                                                @(attendee.Name?.Substring(0, 1).ToUpper() ?? "?")
+                                            </div>
+                                            <div>
+                                                <strong>@attendee.Name</strong>
+                                                <br>
+                                                <small class="text-muted">ID: @attendee.AttendeeID</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (!string.IsNullOrEmpty(attendee.Email))
+                                        {
+                                            <a href="mailto:@attendee.Email" class="text-decoration-none">
+                                                @attendee.Email
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Not provided</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (attendee.Event != null)
+                                        {
+                                            <a href="/Events/Details/@attendee.Event.EventID" class="text-decoration-none">
+                                                @attendee.Event.Title
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Event not found</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (attendee.RegistrationTime.HasValue)
+                                        {
+                                            <small>
+                                                @attendee.RegistrationTime.Value.ToString("MMM dd, yyyy")
+                                                <br>
+                                                @attendee.RegistrationTime.Value.ToString("HH:mm")
+                                            </small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Unknown</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (attendee.User != null)
+                                        {
+                                            <span class="badge badge-info">@attendee.User.FullName</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge badge-secondary">Guest</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a asp-action="Details" asp-route-id="@attendee.AttendeeID" class="btn btn-outline-info" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (!string.IsNullOrEmpty(attendee.Email))
+                                            {
+                                                <a href="mailto:@attendee.Email" class="btn btn-outline-primary" title="Send Email">
+                                                    <i class="fas fa-envelope"></i>
+                                                </a>
+                                            }
+                                            @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+                                            {
+                                                <a asp-action="Delete" asp-route-id="@attendee.AttendeeID" class="btn btn-outline-danger" title="Remove Attendee">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-5x text-muted mb-3"></i>
+                    <h3 class="text-muted">No Attendees Found</h3>
+                    <p class="lead text-muted">There are no event attendees yet.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- DataTables for sorting and filtering -->
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/dataTables.bootstrap4.min.css">
+<script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.11.5/js/dataTables.bootstrap4.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#attendeesTable').DataTable({
+            "order": [[ 3, "desc" ]], // Sort by registration date descending
+            "pageLength": 25,
+            "responsive": true,
+            "language": {
+                "search": "Search attendees:",
+                "lengthMenu": "Show _MENU_ attendees per page",
+                "info": "Showing _START_ to _END_ of _TOTAL_ attendees"
+            },
+            "columnDefs": [
+                { "orderable": false, "targets": [5] } // Disable sorting on Actions column
+            ]
+        });
+    });
+</script>
+
+<style>
+    .table td {
+        vertical-align: middle;
+    }
+
+    .btn-group-sm .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+    }
+</style> 

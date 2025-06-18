@@ -1,0 +1,120 @@
+﻿@{
+    ViewData["Title"] = "Event Management System";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Event Management System</h1>
+    
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="alert alert-success mt-3">
+            <h4>👋 Welcome back, @User.Identity.Name!</h4>
+            <p class="mb-0">You are logged in as <strong>@(User.IsInRole("Admin") ? "Administrator" : User.IsInRole("EventManager") ? "Event Manager" : "User")</strong></p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <a href="/Events" class="btn btn-primary btn-lg w-100 mb-3">
+                    📅 View All Events
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="/Events/Create" class="btn btn-success btn-lg w-100 mb-3">
+                    ➕ Create New Event
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-warning mt-3">
+            <h4>🔐 Please login to access full features</h4>
+            <p class="mb-0">Register or login to create and manage events</p>
+        </div>
+        
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <a href="/Account/Login" class="btn btn-primary btn-lg w-100 mb-3">
+                    🔐 Login
+                </a>
+            </div>
+            <div class="col-md-6">
+                <a href="/Account/Register" class="btn btn-success btn-lg w-100 mb-3">
+                    📝 Register
+                </a>
+            </div>
+        </div>
+    }
+
+    <div class="row mt-5">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">👥 Users</h5>
+                    <p class="card-text">Quản lý người dùng hệ thống</p>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a href="/Users" class="btn btn-outline-primary">View Users</a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📅 Events</h5>
+                    <p class="card-text">Quản lý các sự kiện</p>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a href="/Events" class="btn btn-outline-primary">View Events</a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">📂 Categories</h5>
+                    <p class="card-text">Phân loại sự kiện</p>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a href="/EventCategories" class="btn btn-outline-primary">View Categories</a>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">✅ Attendees</h5>
+                    <p class="card-text">Quản lý người tham dự</p>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <a href="/Attendees" class="btn btn-outline-primary">View Attendees</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+    {
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card border-info">
+                    <div class="card-header bg-info text-white">
+                        <h5>📊 Reports & Analytics</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Access detailed reports and analytics about events and attendees.</p>
+                        <a href="/Reports" class="btn btn-info">View Reports</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/signalr-events.js"></script>
+}

@@ -1,0 +1,204 @@
+@model Assignment3.ViewModels.EventViewModel
+
+@{
+    ViewData["Title"] = "Event Details";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3><i class="fas fa-calendar-alt"></i> @Model.Title</h3>
+                    @if (!string.IsNullOrEmpty(Model.CategoryName))
+                    {
+                        <span class="badge badge-light">@Model.CategoryName</span>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <div class="mb-4">
+                            <h5>Description</h5>
+                            <p class="text-muted">@Model.Description</p>
+                        </div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-section">
+                                <h6><i class="fas fa-clock text-primary"></i> Event Times</h6>
+                                <p><strong>Start:</strong> @Model.StartTime?.ToString("dddd, MMMM dd, yyyy 'at' hh:mm tt")</p>
+                                <p><strong>End:</strong> @Model.EndTime?.ToString("dddd, MMMM dd, yyyy 'at' hh:mm tt")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            @if (!string.IsNullOrEmpty(Model.Location))
+                            {
+                                <div class="info-section">
+                                    <h6><i class="fas fa-map-marker-alt text-primary"></i> Location</h6>
+                                    <p>@Model.Location</p>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <h6><i class="fas fa-users text-primary"></i> Attendees</h6>
+                        <p>@Model.AttendeeCount people registered for this event</p>
+                        <a asp-controller="Attendees" asp-action="EventAttendees" asp-route-id="@Model.EventID" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-list"></i> View Attendee List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <!-- Registration Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-user-plus"></i> Registration</h5>
+                </div>
+                <div class="card-body text-center">
+                    @if (Model.IsUserRegistered)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> You are registered for this event!
+                        </div>
+                        <form asp-controller="Attendees" asp-action="Unregister" asp-route-eventId="@Model.EventID" method="post" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-warning" onclick="return confirm('Are you sure you want to unregister?')">
+                                <i class="fas fa-user-minus"></i> Unregister
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <p>Join this event by registering below:</p>
+                        <a asp-controller="Attendees" asp-action="Register" asp-route-id="@Model.EventID" class="btn btn-success btn-lg">
+                            <i class="fas fa-user-plus"></i> Register Now
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+            {
+                <div class="card mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h6><i class="fas fa-cogs"></i> Management Actions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="btn-group-vertical w-100">
+                            <a asp-action="Edit" asp-route-id="@Model.EventID" class="btn btn-outline-warning">
+                                <i class="fas fa-edit"></i> Edit Event
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@Model.EventID" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i> Delete Event
+                            </a>
+                            <a asp-controller="Attendees" asp-action="EventAttendees" asp-route-id="@Model.EventID" class="btn btn-outline-info">
+                                <i class="fas fa-users"></i> Manage Attendees
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Quick Info Card -->
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h6><i class="fas fa-info-circle"></i> Quick Info</h6>
+                </div>
+                <div class="card-body">
+                    <small class="text-muted">
+                        <p><strong>Event ID:</strong> @Model.EventID</p>
+                        <p><strong>Category:</strong> @(Model.CategoryName ?? "None")</p>
+                        <p><strong>Current Attendees:</strong> @Model.AttendeeCount</p>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Events
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Include SignalR for real-time updates -->
+<script>
+    // Join this event's group when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Wait for SignalR connection to be established
+        setTimeout(function() {
+            if (window.EventSignalR) {
+                window.EventSignalR.joinEventGroup(@Model.EventID);
+                console.log('Joined event group: Event_@Model.EventID');
+            }
+        }, 1000);
+    });
+
+    // Listen for attendee registration updates
+    if (typeof connection !== 'undefined') {
+        connection.on("AttendeeRegistered", function (attendeeName) {
+            window.EventSignalR.showNotification(
+                'New Registration', 
+                attendeeName + ' just registered for this event!', 
+                'success'
+            );
+            
+            // Update attendee count
+            const countElement = document.querySelector('.badge:contains("Attendees")');
+            if (countElement) {
+                setTimeout(() => location.reload(), 2000);
+            }
+        });
+
+        connection.on("AttendeeUnregistered", function (attendeeName) {
+            window.EventSignalR.showNotification(
+                'Unregistered', 
+                attendeeName + ' unregistered from this event.', 
+                'warning'
+            );
+            setTimeout(() => location.reload(), 2000);
+        });
+
+        connection.on("EventUpdated", function (message) {
+            window.EventSignalR.showNotification(
+                'Event Updated', 
+                message, 
+                'info'
+            );
+            setTimeout(() => location.reload(), 2000);
+        });
+    }
+
+    // Leave event group when page unloads
+    window.addEventListener('beforeunload', function() {
+        if (window.EventSignalR) {
+            window.EventSignalR.leaveEventGroup(@Model.EventID);
+        }
+    });
+</script>
+
+<style>
+    .info-section {
+        margin-bottom: 2rem;
+    }
+    
+    .info-section h6 {
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 0.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    .card {
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+</style> 

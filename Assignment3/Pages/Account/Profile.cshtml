@@ -1,0 +1,175 @@
+@page
+@model Assignment3.Pages.Account.ProfileModel
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container">
+    <div class="row">
+        <!-- Profile Information -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5><i class="fas fa-user"></i> My Profile</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                         style="width: 100px; height: 100px; font-size: 2.5rem;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h4>@Model.UserProfile.FullName</h4>
+                    <p class="text-muted">@@@Model.UserProfile.Username</p>
+                    
+                    @if (!string.IsNullOrEmpty(Model.UserProfile.Role))
+                    {
+                        var badgeClass = Model.UserProfile.Role.ToLower() switch
+                        {
+                            "admin" => "badge-danger",
+                            "eventmanager" => "badge-warning",
+                            "user" => "badge-primary",
+                            _ => "badge-secondary"
+                        };
+                        <span class="badge @badgeClass">@Model.UserProfile.Role</span>
+                    }
+
+                    @if (!string.IsNullOrEmpty(Model.UserProfile.Email))
+                    {
+                        <div class="mt-3">
+                            <p class="mb-1"><i class="fas fa-envelope"></i> Email</p>
+                            <span>@Model.UserProfile.Email</span>
+                        </div>
+                    }
+
+                    <div class="mt-3">
+                        <p class="mb-1"><i class="fas fa-calendar-alt"></i> Member Since</p>
+                        <span class="text-muted">@Model.UserProfile.MemberSince.ToString("MMM yyyy")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-chart-bar"></i> Quick Stats</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <h4 class="text-info">@Model.UserProfile.TotalRegistrations</h4>
+                            <small class="text-muted">Total Events</small>
+                        </div>
+                        <div class="col-6">
+                            <h4 class="text-success">@Model.UserProfile.UpcomingEvents</h4>
+                            <small class="text-muted">Upcoming</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-edit"></i> Edit Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i> 
+                            Update your profile information below. Changes will take effect immediately.
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.Username" class="form-label">
+                                        <i class="fas fa-user"></i> Username
+                                    </label>
+                                    <input asp-for="Input.Username" class="form-control" placeholder="Enter username" />
+                                    <span asp-validation-for="Input.Username" class="text-danger"></span>
+                                    <small class="form-text text-muted">Must be unique</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.FullName" class="form-label">
+                                        <i class="fas fa-id-card"></i> Full Name
+                                    </label>
+                                    <input asp-for="Input.FullName" class="form-control" placeholder="Enter full name" />
+                                    <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label asp-for="Input.Email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email
+                            </label>
+                            <input asp-for="Input.Email" type="email" class="form-control" placeholder="Enter email address" />
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            <small class="form-text text-muted">Optional</small>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save"></i> Update Profile
+                            </button>
+                            <a asp-page="/Attendees/MyRegistrations" class="btn btn-info">
+                                <i class="fas fa-calendar-alt"></i> My Events
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-history"></i> Recent Event Activity</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.UserProfile.RecentEvents.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var eventItem in Model.UserProfile.RecentEvents.Take(5))
+                            {
+                                <div class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">@eventItem.Title</h6>
+                                        <small class="text-muted">
+                                            @eventItem.StartTime.ToString("MMM dd, yyyy - h:mm tt")
+                                        </small>
+                                    </div>
+                                    <span class="badge badge-primary">@eventItem.CategoryName</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="text-center mt-3">
+                            <a asp-page="/Attendees/MyRegistrations" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-list"></i> View All My Events
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-3">
+                            <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No event registrations yet</p>
+                            <a asp-page="/Events/Index" class="btn btn-primary btn-sm">
+                                <i class="fas fa-search"></i> Browse Events
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

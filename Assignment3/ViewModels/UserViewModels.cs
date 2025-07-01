@@ -101,6 +101,26 @@ namespace Assignment3.ViewModels
         public int TotalRegistrations { get; set; }
         public int UpcomingEvents { get; set; }
         public int PastEvents { get; set; }
+        public DateTime MemberSince { get; set; }
         public List<EventSummaryViewModel> RegisteredEvents { get; set; } = new List<EventSummaryViewModel>();
+        public List<EventSummaryViewModel> RecentEvents { get; set; } = new List<EventSummaryViewModel>();
+    }
+
+    public class ProfileEditViewModel
+    {
+        [Required]
+        [StringLength(255)]
+        [Display(Name = "Username")]
+        public string Username { get; set; } = string.Empty;
+
+        [Required]
+        [StringLength(255)]
+        [Display(Name = "Full Name")]
+        public string FullName { get; set; } = string.Empty;
+
+        [EmailAddress]
+        [StringLength(255)]
+        [Display(Name = "Email")]
+        public string? Email { get; set; }
     }
 } 

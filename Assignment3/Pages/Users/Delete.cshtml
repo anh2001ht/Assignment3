@@ -1,0 +1,134 @@
+@page "{id:int}"
+@model Assignment3.Pages.Users.DeleteModel
+
+@{
+    ViewData["Title"] = "Delete User";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4><i class="fas fa-user-times"></i> Delete User Confirmation</h4>
+                    <p class="mb-0">Are you sure you want to delete this user?</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Warning:</strong> This action cannot be undone. Deleting a user will permanently remove their account and all associated data.
+                    </div>
+
+                    <!-- User Information Display -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.UserToDelete.Role))
+                            {
+                                var badgeClass = Model.UserToDelete.Role.ToLower() switch
+                                {
+                                    "admin" => "badge-danger",
+                                    "eventmanager" => "badge-warning",
+                                    "user" => "badge-primary",
+                                    _ => "badge-secondary"
+                                };
+                                <br><span class="badge @badgeClass">@Model.UserToDelete.Role</span>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h4>@Model.UserToDelete.FullName</h4>
+                            <p class="text-muted mb-1">@@@Model.UserToDelete.Username</p>
+                            @if (!string.IsNullOrEmpty(Model.UserToDelete.Email))
+                            {
+                                <p class="text-muted mb-1"><i class="fas fa-envelope"></i> @Model.UserToDelete.Email</p>
+                            }
+                            <p class="text-muted"><i class="fas fa-id-card"></i> User ID: @Model.UserToDelete.UserID</p>
+                        </div>
+                    </div>
+
+                    <!-- User Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white text-center">
+                                <div class="card-body">
+                                    <h3>@Model.UserToDelete.TotalRegistrations</h3>
+                                    <p class="mb-0">Total Registrations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-white text-center">
+                                <div class="card-body">
+                                    <h3>@(Model.UserToDelete.HasActiveRegistrations ? "Yes" : "No")</h3>
+                                    <p class="mb-0">Active Registrations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-secondary text-white text-center">
+                                <div class="card-body">
+                                    <h3>@Model.UserToDelete.UserID</h3>
+                                    <p class="mb-0">User ID</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Active Registrations Warning -->
+                    @if (Model.UserToDelete.HasActiveRegistrations)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <strong>Cannot Delete:</strong> This user has active event registrations. 
+                            Please cancel all active registrations before deleting the user account.
+                            <br />
+                            <small>Active registrations: Events that haven't started yet</small>
+                        </div>
+                    }
+
+                    <!-- Deletion Impact -->
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-info-circle"></i> What will be deleted:</h6>
+                        <ul class="mb-0">
+                            <li>User account and login credentials</li>
+                            <li>Personal information and profile data</li>
+                            <li>Past event registration history</li>
+                            <li>All associated user data</li>
+                        </ul>
+                    </div>
+
+                    <div class="form-group mt-4">
+                        @if (!Model.UserToDelete.HasActiveRegistrations)
+                        {
+                            <form method="post" style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-lg" 
+                                        onclick="return confirm('Are you absolutely sure you want to delete this user? This action cannot be undone.')">
+                                    <i class="fas fa-trash"></i> Yes, Delete User
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button type="button" class="btn btn-danger btn-lg" disabled>
+                                <i class="fas fa-ban"></i> Cannot Delete (Has Active Registrations)
+                            </button>
+                        }
+                        
+                        <a asp-page="/Users/Details" asp-route-id="@Model.UserToDelete.UserID" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View Details
+                        </a>
+                        <a asp-page="/Users/Edit" asp-route-id="@Model.UserToDelete.UserID" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit Instead
+                        </a>
+                        <a asp-page="/Users/Index" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

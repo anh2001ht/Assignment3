@@ -1,0 +1,76 @@
+@page
+@model Assignment3.Pages.Account.RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header text-center">
+                <h4>📝 Register New Account</h4>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Username" class="form-label">Username</label>
+                            <input asp-for="Input.Username" class="form-control" placeholder="Enter username" />
+                            <span asp-validation-for="Input.Username" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.FullName" class="form-label">Full Name</label>
+                            <input asp-for="Input.FullName" class="form-control" placeholder="Enter full name" />
+                            <span asp-validation-for="Input.FullName" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Input.Email" class="form-label">Email</label>
+                        <input asp-for="Input.Email" class="form-control" placeholder="Enter email address" />
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.Password" class="form-label">Password</label>
+                            <input asp-for="Input.Password" class="form-control" placeholder="Enter password" />
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Input.ConfirmPassword" class="form-label">Confirm Password</label>
+                            <input asp-for="Input.ConfirmPassword" class="form-control" placeholder="Confirm password" />
+                            <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label asp-for="Input.Role" class="form-label">Role</label>
+                        <select asp-for="Input.Role" class="form-select">
+                            <option value="User">User</option>
+                            <option value="Admin">Admin</option>
+                            <option value="EventManager">Event Manager</option>
+                        </select>
+                        <span asp-validation-for="Input.Role" class="text-danger"></span>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">Register</button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p>Already have an account? <a asp-page="/Account/Login">Login here</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 

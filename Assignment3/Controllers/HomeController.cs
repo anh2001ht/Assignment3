@@ -22,7 +22,6 @@ namespace Assignment3.Controllers
             try
             {
                 var canConnect = _context.Database.CanConnect();
-                ViewBag.DatabaseStatus = canConnect ? "Kết nối database thành công!" : "Không thể kết nối database";
                 ViewBag.StatusClass = canConnect ? "text-success" : "text-danger";
             }
             catch (Exception ex)

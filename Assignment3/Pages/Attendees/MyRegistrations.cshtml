@@ -1,0 +1,207 @@
+@page
+@model Assignment3.Pages.Attendees.MyRegistrationsModel
+
+@{
+    ViewData["Title"] = "My Event Registrations";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-calendar-check"></i> My Event Registrations</h2>
+            <p class="text-muted">Events you are registered for</p>
+        </div>
+        <div>
+            <a asp-page="/Events/Index" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Browse Events
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Registrations.Count</h3>
+                    <p class="mb-0">Total Registrations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Registrations.Where(a => a.Event != null && a.Event.StartTime > DateTime.Now).Count()</h3>
+                    <p class="mb-0">Upcoming Events</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Registrations.Where(a => a.Event != null && a.Event.EndTime < DateTime.Now).Count()</h3>
+                    <p class="mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>@Model.Registrations.Where(a => a.RegistrationTime >= DateTime.Today.AddDays(-30)).Count()</h3>
+                    <p class="mb-0">This Month</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Registrations List -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-list"></i> Your Event Registrations</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.Registrations.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover" id="registrationsTable">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th><i class="fas fa-calendar-alt"></i> Event</th>
+                                <th class="text-center"><i class="fas fa-clock"></i> Event Date</th>
+                                <th class="text-center"><i class="fas fa-map-marker-alt"></i> Location</th>
+                                <th class="text-center"><i class="fas fa-calendar-check"></i> Registration Date</th>
+                                <th class="text-center"><i class="fas fa-info-circle"></i> Status</th>
+                                <th class="text-center"><i class="fas fa-cog"></i> Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var registration in Model.Registrations.OrderByDescending(a => a.RegistrationTime))
+                            {
+                                var now = DateTime.Now;
+                                var status = "Unknown";
+                                var statusClass = "badge-secondary";
+                                var canUnregister = false;
+
+                                if (registration.Event != null)
+                                {
+                                    if (registration.Event.StartTime.HasValue)
+                                    {
+                                        if (registration.Event.StartTime.Value > now)
+                                        {
+                                            status = "Upcoming";
+                                            statusClass = "badge-success";
+                                            canUnregister = true;
+                                        }
+                                        else if (registration.Event.EndTime.HasValue && registration.Event.EndTime.Value < now)
+                                        {
+                                            status = "Completed";
+                                            statusClass = "badge-info";
+                                        }
+                                        else
+                                        {
+                                            status = "In Progress";
+                                            statusClass = "badge-warning";
+                                        }
+                                    }
+                                }
+
+                                <tr>
+                                    <td>
+                                        <div>
+                                            <strong>@(registration.Event?.Title ?? "Unknown Event")</strong>
+                                            @if (registration.Event?.Category != null)
+                                            {
+                                                <br />
+                                                <small class="text-muted">
+                                                    <i class="fas fa-tag"></i> @registration.Event.Category.CategoryName
+                                                </small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (registration.Event?.StartTime.HasValue == true)
+                                        {
+                                            <div>@registration.Event.StartTime.Value.ToString("MMM dd, yyyy")</div>
+                                            <small class="text-muted">@registration.Event.StartTime.Value.ToString("hh:mm tt")</small>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">TBD</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (!string.IsNullOrEmpty(registration.Event?.Location))
+                                        {
+                                            <span>@registration.Event.Location</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">TBD</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        @if (registration.RegistrationTime.HasValue)
+                                        {
+                                            <div>@registration.RegistrationTime.Value.ToString("MMM dd, yyyy")</div>
+                                            <small class="text-muted">@registration.RegistrationTime.Value.ToString("hh:mm tt")</small>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge @statusClass">@status</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            @if (registration.Event != null)
+                                            {
+                                                <a asp-page="/Events/Details" asp-route-id="@registration.Event.EventID" class="btn btn-outline-primary" title="View Event">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                            }
+                                            @if (canUnregister)
+                                            {
+                                                <a asp-page="/Attendees/Unregister" asp-route-id="@registration.EventID" class="btn btn-outline-warning" title="Cancel Registration">
+                                                    <i class="fas fa-user-minus"></i>
+                                                </a>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-4x text-muted mb-3"></i>
+                    <h4>No Event Registrations</h4>
+                    <p class="text-muted">You haven't registered for any events yet.</p>
+                    <a asp-page="/Events/Index" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Browse Available Events
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Initialize DataTable for better sorting and filtering
+        $(document).ready(function() {
+            if ($('#registrationsTable').length) {
+                $('#registrationsTable').DataTable({
+                    "pageLength": 10,
+                    "order": [[ 3, "desc" ]], // Sort by registration date descending
+                    "responsive": true,
+                    "language": {
+                        "search": "Search registrations:",
+                        "lengthMenu": "Show _MENU_ registrations per page",
+                        "info": "Showing _START_ to _END_ of _TOTAL_ registrations"
+                    }
+                });
+            }
+        });
+    </script>
+} 

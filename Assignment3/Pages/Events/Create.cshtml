@@ -1,0 +1,123 @@
+@page
+@model Assignment3.Pages.Events.CreateModel
+
+@{
+    ViewData["Title"] = "Create Event";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-plus-circle"></i> Create New Event</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.Title" class="form-label">Event Title</label>
+                                    <input asp-for="Input.Title" class="form-control" placeholder="Enter event title..." />
+                                    <span asp-validation-for="Input.Title" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.Description" class="form-label">Description</label>
+                                    <textarea asp-for="Input.Description" class="form-control" rows="4" placeholder="Describe your event..."></textarea>
+                                    <span asp-validation-for="Input.Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.StartTime" class="form-label">Start Time</label>
+                                    <input asp-for="Input.StartTime" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="Input.StartTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.EndTime" class="form-label">End Time</label>
+                                    <input asp-for="Input.EndTime" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="Input.EndTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.Location" class="form-label">Location</label>
+                                    <input asp-for="Input.Location" class="form-control" placeholder="Event location..." />
+                                    <span asp-validation-for="Input.Location" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-3">
+                                    <label asp-for="Input.CategoryID" class="form-label">Category</label>
+                                    <select asp-for="Input.CategoryID" asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName"))" class="form-control">
+                                        <option value="">Select a category...</option>
+                                    </select>
+                                    <span asp-validation-for="Input.CategoryID" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create Event
+                            </button>
+                            <a asp-page="/Events/Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Set default date/time values if empty
+        document.addEventListener('DOMContentLoaded', function() {
+            var startTime = document.getElementById('Input_StartTime');
+            var endTime = document.getElementById('Input_EndTime');
+            
+            if (!startTime.value) {
+                var tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(9, 0, 0, 0);
+                startTime.value = tomorrow.toISOString().slice(0, 16);
+            }
+            
+            if (!endTime.value) {
+                var endDate = new Date();
+                endDate.setDate(endDate.getDate() + 1);
+                endDate.setHours(11, 0, 0, 0);
+                endTime.value = endDate.toISOString().slice(0, 16);
+            }
+            
+            // Validate end time is after start time
+            startTime.addEventListener('change', function() {
+                if (endTime.value && startTime.value >= endTime.value) {
+                    var newEndTime = new Date(startTime.value);
+                    newEndTime.setHours(newEndTime.getHours() + 2);
+                    endTime.value = newEndTime.toISOString().slice(0, 16);
+                }
+            });
+        });
+    </script>
+} 

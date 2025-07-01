@@ -1,0 +1,178 @@
+@page "{id:int}"
+@model Assignment3.Pages.Events.DetailsModel
+
+@{
+    ViewData["Title"] = $"Event Details - {Model.Event.Title}";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4><i class="fas fa-calendar-alt"></i> @Model.Event.Title</h4>
+                    @if (Model.Event.Category != null)
+                    {
+                        <span class="badge badge-light">@Model.Event.Category.CategoryName</span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            @if (Model.Event.StartTime.HasValue)
+                            {
+                                <p><i class="fas fa-clock text-primary"></i> <strong>Start:</strong> @Model.Event.StartTime.Value.ToString("MMM dd, yyyy - hh:mm tt")</p>
+                            }
+                            @if (Model.Event.EndTime.HasValue)
+                            {
+                                <p><i class="fas fa-clock text-primary"></i> <strong>End:</strong> @Model.Event.EndTime.Value.ToString("MMM dd, yyyy - hh:mm tt")</p>
+                            }
+                        </div>
+                        <div class="col-md-6">
+                            @if (!string.IsNullOrEmpty(Model.Event.Location))
+                            {
+                                <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> @Model.Event.Location</p>
+                            }
+                            <p><i class="fas fa-users text-primary"></i> <strong>Attendees:</strong> @Model.AttendeeCount registered</p>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Event.Description))
+                    {
+                        <hr />
+                        <h5><i class="fas fa-info-circle"></i> Description</h5>
+                        <p>@Model.Event.Description</p>
+                    }
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <!-- Registration Card -->
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5><i class="fas fa-user-plus"></i> Registration</h5>
+                </div>
+                <div class="card-body text-center">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        @if (!Model.IsUserRegistered)
+                        {
+                            <p>Join this event by registering below:</p>
+                            <a asp-page="/Attendees/Register" asp-route-id="@Model.Event.EventID" class="btn btn-success btn-lg">
+                                <i class="fas fa-user-plus"></i> Register Now
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle"></i> You are registered for this event!
+                            </div>
+                            <a asp-page="/Attendees/Unregister" asp-route-id="@Model.Event.EventID" class="btn btn-warning">
+                                <i class="fas fa-user-minus"></i> Cancel Registration
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <p>Please log in to register for this event:</p>
+                        <a asp-page="/Account/Login" class="btn btn-primary">
+                            <i class="fas fa-sign-in-alt"></i> Login to Register
+                        </a>
+                    }
+                </div>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-cogs"></i> Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <!-- View Attendees -->
+                        <a asp-page="/Attendees/EventAttendees" asp-route-id="@Model.Event.EventID" class="btn btn-outline-info">
+                            <i class="fas fa-users"></i> View Attendees (@Model.AttendeeCount)
+                        </a>
+                        
+                        @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+                        {
+                            <a asp-page="/Events/Edit" asp-route-id="@Model.Event.EventID" class="btn btn-outline-warning">
+                                <i class="fas fa-edit"></i> Edit Event
+                            </a>
+                            <a asp-page="/Events/Delete" asp-route-id="@Model.Event.EventID" class="btn btn-outline-danger">
+                                <i class="fas fa-trash"></i> Delete Event
+                            </a>
+                        }
+                        
+                        <a asp-page="/Events/Index" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Events
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar"></i> Quick Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a asp-page="/Attendees/MyRegistrations" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-calendar-check"></i> My Registrations
+                            </a>
+                            @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+                            {
+                                <a asp-page="/Attendees/Index" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-users"></i> All Attendees
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/signalr/dist/browser/signalr.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/eventHub")
+            .build();
+
+        connection.start().then(function () {
+            console.log("Connected to EventHub");
+            
+            // Join the specific event group
+            connection.invoke("JoinEventGroup", @Model.Event.EventID);
+            
+        }).catch(function (err) {
+            console.error(err.toString());
+        });
+
+        // Listen for attendee registration updates
+        connection.on("AttendeeRegistered", function (attendeeName) {
+            // Reload the page to update attendee count
+            location.reload();
+        });
+
+        connection.on("AttendeeUnregistered", function (attendeeName) {
+            // Reload the page to update attendee count
+            location.reload();
+        });
+
+        connection.on("EventUpdated", function (message) {
+            // Show notification that event was updated
+            if (window.toastr) {
+                toastr.info(message);
+            }
+            // Reload the page to show updated info
+            setTimeout(() => location.reload(), 1000);
+        });
+    </script>
+} 

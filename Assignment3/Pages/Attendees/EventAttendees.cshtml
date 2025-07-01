@@ -1,0 +1,238 @@
+@page "{id:int}"
+@model Assignment3.Pages.Attendees.EventAttendeesModel
+
+@{
+    ViewData["Title"] = $"Event Attendees - {Model.Event?.Title}";
+}
+
+<div class="container">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users text-primary"></i> Event Attendees
+        </h1>
+        <div>
+            <a asp-page="/Events/Details" asp-route-id="@Model.Event?.EventID" class="btn btn-primary">
+                <i class="fas fa-eye"></i> View Event
+            </a>
+            <a asp-page="/Events/Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> All Events
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Event != null)
+    {
+        <!-- Event Information Card -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-calendar-alt"></i> @Model.Event.Title
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        @if (Model.Event.StartTime.HasValue)
+                        {
+                            <p><i class="fas fa-clock text-primary"></i> <strong>Start:</strong> @Model.Event.StartTime.Value.ToString("MMM dd, yyyy - hh:mm tt")</p>
+                        }
+                        @if (Model.Event.EndTime.HasValue)
+                        {
+                            <p><i class="fas fa-clock text-primary"></i> <strong>End:</strong> @Model.Event.EndTime.Value.ToString("MMM dd, yyyy - hh:mm tt")</p>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        @if (!string.IsNullOrEmpty(Model.Event.Location))
+                        {
+                            <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> @Model.Event.Location</p>
+                        }
+                        @if (Model.Event.Category != null)
+                        {
+                            <p><i class="fas fa-tag text-primary"></i> <strong>Category:</strong> @Model.Event.Category.CategoryName</p>
+                        }
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Event.Description))
+                {
+                    <hr />
+                    <p><i class="fas fa-info-circle text-primary"></i> <strong>Description:</strong></p>
+                    <p>@Model.Event.Description</p>
+                }
+            </div>
+        </div>
+
+        <!-- Attendees Count Card -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                    Registered Attendees
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.Attendees.Count</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-users fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendees Table -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-users"></i> Registered Attendees
+                </h6>
+            </div>
+            <div class="card-body">
+                @if (Model.Attendees.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Registration Date</th>
+                                    <th>User Account</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var attendee in Model.Attendees)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="avatar avatar-sm me-3">
+                                                    <div class="avatar-initial rounded-circle bg-primary text-white">
+                                                        @(attendee.Name?.FirstOrDefault().ToString().ToUpper() ?? "?")
+                                                    </div>
+                                                </div>
+                                                @attendee.Name
+                                            </div>
+                                        </td>
+                                        <td>@attendee.Email</td>
+                                        <td>
+                                            @if (attendee.RegistrationTime.HasValue)
+                                            {
+                                                @attendee.RegistrationTime.Value.ToString("MMM dd, yyyy")
+                                                <br />
+                                                <small class="text-muted">@attendee.RegistrationTime.Value.ToString("h:mm tt")</small>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (attendee.User != null)
+                                            {
+                                                <span class="badge badge-success">@attendee.User.Username</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge badge-secondary">Guest</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+                                            {
+                                                <form method="post" asp-page-handler="RemoveAttendee" class="d-inline">
+                                                    <input type="hidden" asp-for="@attendee.AttendeeID" name="attendeeId" />
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                            onclick="return confirm('Are you sure you want to remove this attendee?')">
+                                                        <i class="fas fa-user-minus"></i> Remove
+                                                    </button>
+                                                </form>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-gray-300 mb-3"></i>
+                        <h5 class="text-gray-600">No attendees registered yet</h5>
+                        <p class="text-gray-500">Be the first to register for this event!</p>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <a asp-page="/Attendees/Register" asp-route-id="@Model.Event.EventID" class="btn btn-primary">
+                                <i class="fas fa-user-plus"></i> Register Now
+                            </a>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle"></i> Event not found.
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#dataTable').DataTable({
+                "pageLength": 25,
+                "order": [[ 2, "desc" ]], // Sort by registration date descending
+                "columnDefs": [
+                    { "orderable": false, "targets": [4] } // Disable sorting for Actions column
+                ]
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .avatar {
+            width: 2rem;
+            height: 2rem;
+            position: relative;
+            display: inline-flex;
+        }
+        
+        .avatar-initial {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .border-left-success {
+            border-left: 0.25rem solid #1cc88a !important;
+        }
+        
+        .card-body {
+            flex: 1 1 auto;
+            min-height: 1px;
+            padding: 1.25rem;
+        }
+        
+        .no-gutters {
+            margin-right: 0;
+            margin-left: 0;
+        }
+        
+        .no-gutters > .col,
+        .no-gutters > [class*="col-"] {
+            padding-right: 0;
+            padding-left: 0;
+        }
+    </style>
+} 

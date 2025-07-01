@@ -1,0 +1,97 @@
+@page "{id:int}"
+@model Assignment3.Pages.Attendees.UnregisterModel
+
+@{
+    ViewData["Title"] = "Cancel Registration";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-warning">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-user-minus"></i> Cancel Event Registration</h4>
+                    <p class="mb-0">Are you sure you want to cancel your registration?</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        You are currently registered for this event. You can cancel your registration at any time before the event starts.
+                    </div>
+
+                    <!-- Event Details -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5>Event Details</h5>
+                            <dl class="row">
+                                <dt class="col-sm-3">Event:</dt>
+                                <dd class="col-sm-9">@Model.Event.Title</dd>
+
+                                @if (Model.Event.StartTime.HasValue)
+                                {
+                                    <dt class="col-sm-3">Start Time:</dt>
+                                    <dd class="col-sm-9">@Model.Event.StartTime.Value.ToString("MMM dd, yyyy - hh:mm tt")</dd>
+                                }
+
+                                @if (Model.Event.EndTime.HasValue)
+                                {
+                                    <dt class="col-sm-3">End Time:</dt>
+                                    <dd class="col-sm-9">@Model.Event.EndTime.Value.ToString("MMM dd, yyyy - hh:mm tt")</dd>
+                                }
+
+                                @if (!string.IsNullOrEmpty(Model.Event.Location))
+                                {
+                                    <dt class="col-sm-3">Location:</dt>
+                                    <dd class="col-sm-9">@Model.Event.Location</dd>
+                                }
+
+                                @if (Model.Event.Category != null)
+                                {
+                                    <dt class="col-sm-3">Category:</dt>
+                                    <dd class="col-sm-9">@Model.Event.Category.CategoryName</dd>
+                                }
+                            </dl>
+                        </div>
+                    </div>
+
+                    <!-- Registration Details -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h5>Your Registration</h5>
+                            <dl class="row">
+                                <dt class="col-sm-3">Name:</dt>
+                                <dd class="col-sm-9">@Model.Attendee.Name</dd>
+
+                                <dt class="col-sm-3">Email:</dt>
+                                <dd class="col-sm-9">@Model.Attendee.Email</dd>
+
+                                <dt class="col-sm-3">Registered On:</dt>
+                                <dd class="col-sm-9">@Model.Attendee.RegistrationTime?.ToString("MMM dd, yyyy - hh:mm tt")</dd>
+                            </dl>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        <strong>Cancellation Policy:</strong> You can cancel your registration at any time before the event starts. 
+                        You will not receive further email updates about this event after cancellation.
+                    </div>
+
+                    <div class="form-group mt-4">
+                        <form method="post" style="display: inline;">
+                            <button type="submit" class="btn btn-warning btn-lg" onclick="return confirm('Are you sure you want to cancel your registration for this event?')">
+                                <i class="fas fa-user-minus"></i> Yes, Cancel Registration
+                            </button>
+                        </form>
+                        <a asp-page="/Events/Details" asp-route-id="@Model.Event.EventID" class="btn btn-info">
+                            <i class="fas fa-eye"></i> View Event Details
+                        </a>
+                        <a asp-page="/Attendees/MyRegistrations" class="btn btn-secondary">
+                            <i class="fas fa-list"></i> My Registrations
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

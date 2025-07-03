@@ -1,0 +1,166 @@
+@model Assignment3.ViewModels.EventSearchViewModel
+
+@{
+    ViewData["Title"] = "Events";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-calendar-alt"></i> Events</h2>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create New Event
+                </a>
+            </div>
+
+            <!-- Search and Filter Section -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-search"></i> Search </h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Index" method="get">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label asp-for="SearchTerm">Search Term</label>
+                                    <input asp-for="SearchTerm" class="form-control" placeholder="Search title, description, or location..." />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label asp-for="CategoryId">Category</label>
+                                    <select asp-for="CategoryId" asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName"))" class="form-control">
+                                        <option value="">All Categories</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label asp-for="StartDate">Start Date</label>
+                                    <input asp-for="StartDate" type="date" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label asp-for="EndDate">End Date</label>
+                                    <input asp-for="EndDate" type="date" class="form-control" />
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-group">
+                                    <label asp-for="Location">Location</label>
+                                    <input asp-for="Location" class="form-control" placeholder="Location..." />
+                                </div>
+                            </div>
+                            <div class="col-md-1">
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-info form-control">
+                                        <i class="fas fa-search">Search</i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Events Grid -->
+            <div class="row">
+                @if (Model.Events.Any())
+                {
+                    @foreach (var item in Model.Events)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="card-title mb-0">@item.Title</h5>
+                                    <small>@item.Category?.CategoryName</small>
+                                </div>
+                                <div class="card-body">
+                                    <p class="card-text">
+                                        @if (!string.IsNullOrEmpty(item.Description))
+                                        {
+                                            @(item.Description.Length > 100 ? item.Description.Substring(0, 100) + "..." : item.Description)
+                                        }
+                                    </p>
+                                    <div class="event-info">
+                                        <p><i class="fas fa-clock"></i> <strong>Start:</strong> @item.StartTime?.ToString("MMM dd, yyyy - hh:mm tt")</p>
+                                        <p><i class="fas fa-clock"></i> <strong>End:</strong> @item.EndTime?.ToString("MMM dd, yyyy - hh:mm tt")</p>
+                                        @if (!string.IsNullOrEmpty(item.Location))
+                                        {
+                                            <p><i class="fas fa-map-marker-alt"></i> @item.Location</p>
+                                        }
+                                        <p><i class="fas fa-users"></i> @item.Attendees.Count attendee(s)</p>
+                                    </div>
+                                </div>
+                                <div class="card-footer">
+                                    <div class="btn-group w-100" role="group">
+                                        <a asp-action="Details" asp-route-id="@item.EventID" class="btn btn-outline-primary btn-sm">
+                                            <i class="fas fa-eye"></i> Details
+                                        </a>
+                                        <a asp-controller="Attendees" asp-action="Register" asp-route-id="@item.EventID" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-user-plus"></i> Register
+                                        </a>
+                                        @if (User.IsInRole("Admin") || User.IsInRole("EventManager"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.EventID" class="btn btn-outline-warning btn-sm">
+                                                <i class="fas fa-edit"></i> Edit
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="col-12">
+                        <div class="alert alert-info text-center">
+                            <i class="fas fa-info-circle"></i> No events found. 
+                            <a asp-action="Create" class="alert-link">Create the first event</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include SignalR -->
+<script>
+    // The SignalR connection is already established in signalr-events.js
+    // Just listen for events that affect the events list
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Events Index page loaded, listening for SignalR events');
+        
+        // No need to create a new connection, it's already available
+        if (window.EventSignalR && window.EventSignalR.connection) {
+            console.log('SignalR connection available for Events Index');
+        }
+    });
+</script>
+
+<style>
+    .event-info p {
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .event-info i {
+        width: 16px;
+        color: #6c757d;
+    }
+    
+    .card-header h5 {
+        font-size: 1.1rem;
+    }
+    
+    .btn-group .btn {
+        font-size: 0.8rem;
+    }
+</style> 

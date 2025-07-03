@@ -1,0 +1,194 @@
+@model Assignment3.Models.Attendee
+
+@{
+    ViewData["Title"] = "Remove Attendee";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-danger"><i class="fas fa-user-times"></i> Remove Attendee</h2>
+            <p class="text-muted">Remove attendee from event registration</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Confirm Attendee Removal</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h6><i class="fas fa-warning"></i> Warning</h6>
+                        This will remove the attendee from the event. This action cannot be undone.
+                    </div>
+
+                    <!-- Attendee Information Display -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                @(Model.Name?.Substring(0, 1).ToUpper() ?? "?")
+                            </div>
+                            @if (Model.User != null)
+                            {
+                                <br><span class="badge badge-info">Registered User</span>
+                            }
+                            else
+                            {
+                                <br><span class="badge badge-secondary">Guest Registration</span>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h4>@Model.Name</h4>
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <p class="text-muted mb-1"><i class="fas fa-envelope"></i> @Model.Email</p>
+                            }
+                            @if (Model.RegistrationTime.HasValue)
+                            {
+                                <p class="text-muted mb-1"><i class="fas fa-clock"></i> Registered: @Model.RegistrationTime.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                            }
+                            <p class="text-muted"><i class="fas fa-id-card"></i> Attendee ID: @Model.AttendeeID</p>
+                            @if (Model.User != null)
+                            {
+                                <p class="text-muted"><i class="fas fa-user"></i> User: @Model.User.FullName (@Model.User.Username)</p>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Event Information -->
+                    @if (Model.Event != null)
+                    {
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6><i class="fas fa-calendar-alt"></i> Event Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <h5>@Model.Event.Title</h5>
+                                @if (!string.IsNullOrEmpty(Model.Event.Description))
+                                {
+                                    <p class="text-muted">@Model.Event.Description</p>
+                                }
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        @if (Model.Event.StartTime.HasValue)
+                                        {
+                                            <p><i class="fas fa-clock text-primary"></i> <strong>Start:</strong> @Model.Event.StartTime.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                                        }
+                                        @if (Model.Event.EndTime.HasValue)
+                                        {
+                                            <p><i class="fas fa-clock text-primary"></i> <strong>End:</strong> @Model.Event.EndTime.Value.ToString("MMM dd, yyyy HH:mm")</p>
+                                        }
+                                    </div>
+                                    <div class="col-md-6">
+                                        @if (!string.IsNullOrEmpty(Model.Event.Location))
+                                        {
+                                            <p><i class="fas fa-map-marker-alt text-primary"></i> <strong>Location:</strong> @Model.Event.Location</p>
+                                        }
+                                        <p><i class="fas fa-users text-primary"></i> <strong>Total Attendees:</strong> @Model.Event.Attendees.Count</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="alert alert-info" role="alert">
+                        <h6><i class="fas fa-info-circle"></i> Impact of Removal</h6>
+                        <ul class="mb-0">
+                            <li>Attendee will be removed from the event registration</li>
+                            <li>Registration record will be permanently deleted</li>
+                            <li>Attendee will no longer receive event updates</li>
+                            @if (Model.User != null)
+                            {
+                                <li>User account will remain active (only event registration removed)</li>
+                            }
+                            <li>This action cannot be undone</li>
+                        </ul>
+                    </div>
+
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="AttendeeID" />
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="confirmRemoval" required>
+                            <label class="form-check-label" for="confirmRemoval">
+                                I understand that this will permanently remove the attendee from the event
+                            </label>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <button type="submit" class="btn btn-danger" id="removeButton" disabled>
+                                <i class="fas fa-user-times"></i> Remove Attendee
+                            </button>
+                            <div>
+                                <a asp-action="Details" asp-route-id="@Model.AttendeeID" class="btn btn-info">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                                @if (Model.Event != null)
+                                {
+                                    <a href="/Events/Details/@Model.Event.EventID" class="btn btn-primary">
+                                        <i class="fas fa-calendar-alt"></i> View Event
+                                    </a>
+                                }
+                                <a asp-action="Index" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Safety Tips -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-shield-alt"></i> Safety Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success"></i> Before Removing</h6>
+                            <ul class="small">
+                                <li>Verify this is the correct attendee</li>
+                                <li>Consider notifying the attendee</li>
+                                <li>Check if they have special requirements</li>
+                                <li>Export data if needed for records</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb text-warning"></i> Alternatives</h6>
+                            <ul class="small">
+                                <li>Contact attendee to confirm cancellation</li>
+                                <li>Move to a different event if available</li>
+                                <li>Keep registration but mark as inactive</li>
+                                <li>Export attendee data before removal</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('confirmRemoval').addEventListener('change', function() {
+        const removeButton = document.getElementById('removeButton');
+        removeButton.disabled = !this.checked;
+        
+        if (this.checked) {
+            removeButton.classList.remove('btn-secondary');
+            removeButton.classList.add('btn-danger');
+        } else {
+            removeButton.classList.remove('btn-danger');
+            removeButton.classList.add('btn-secondary');
+        }
+    });
+</script> 

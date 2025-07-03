@@ -1,0 +1,111 @@
+@model Assignment3.ViewModels.EventViewModel
+
+@{
+    ViewData["Title"] = "Edit Event";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h4><i class="fas fa-edit"></i> Edit Event: @Model.Title</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                        <input type="hidden" asp-for="EventID" />
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="Title" class="form-label"></label>
+                                    <input asp-for="Title" class="form-control" placeholder="Enter event title..." />
+                                    <span asp-validation-for="Title" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label asp-for="Description" class="form-label"></label>
+                                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Describe your event..."></textarea>
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="StartTime" class="form-label"></label>
+                                    <input asp-for="StartTime" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="StartTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="EndTime" class="form-label"></label>
+                                    <input asp-for="EndTime" type="datetime-local" class="form-control" />
+                                    <span asp-validation-for="EndTime" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="Location" class="form-label"></label>
+                                    <input asp-for="Location" class="form-control" placeholder="Event location..." />
+                                    <span asp-validation-for="Location" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label asp-for="CategoryID" class="form-label">Category</label>
+                                    <select asp-for="CategoryID" asp-items="@(new SelectList(Model.Categories, "CategoryID", "CategoryName"))" class="form-control">
+                                        <option value="">Select a category...</option>
+                                    </select>
+                                    <span asp-validation-for="CategoryID" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Update Event
+                            </button>
+                            <a asp-action="Details" asp-route-id="@Model.EventID" class="btn btn-info">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to List
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var startTime = document.getElementById('StartTime');
+            var endTime = document.getElementById('EndTime');
+            
+            // Validate end time is after start time
+            startTime.addEventListener('change', function() {
+                if (endTime.value && startTime.value >= endTime.value) {
+                    var newEndTime = new Date(startTime.value);
+                    newEndTime.setHours(newEndTime.getHours() + 2);
+                    endTime.value = newEndTime.toISOString().slice(0, 16);
+                }
+            });
+        });
+    </script>
+} 

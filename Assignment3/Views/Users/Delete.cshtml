@@ -1,0 +1,197 @@
+@model Assignment3.ViewModels.DeleteUserViewModel
+
+@{
+    ViewData["Title"] = "Delete User";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="text-danger"><i class="fas fa-user-times"></i> Delete User</h2>
+            <p class="text-muted">Permanently remove user from the system</p>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> @TempData["ErrorMessage"]
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Confirm User Deletion</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning" role="alert">
+                        <h6><i class="fas fa-warning"></i> Warning</h6>
+                        This action cannot be undone. All user data will be permanently deleted.
+                    </div>
+
+                    <!-- User Information Display -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-center">
+                            <div class="bg-secondary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" 
+                                 style="width: 80px; height: 80px; font-size: 2rem;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.Role))
+                            {
+                                var badgeClass = Model.Role.ToLower() switch
+                                {
+                                    "admin" => "badge-danger",
+                                    "eventmanager" => "badge-warning",
+                                    "user" => "badge-primary",
+                                    _ => "badge-secondary"
+                                };
+                                <br><span class="badge @badgeClass">@Model.Role</span>
+                            }
+                        </div>
+                        <div class="col-md-8">
+                            <h4>@Model.FullName</h4>
+                            <p class="text-muted mb-1">@Model.Username</p>
+                            @if (!string.IsNullOrEmpty(Model.Email))
+                            {
+                                <p class="text-muted mb-1"><i class="fas fa-envelope"></i> @Model.Email</p>
+                            }
+                            <p class="text-muted"><i class="fas fa-id-card"></i> User ID: @Model.UserID</p>
+                        </div>
+                    </div>
+
+                    <!-- User Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card @(Model.TotalRegistrations > 0 ? "border-warning" : "border-light")">
+                                <div class="card-body text-center">
+                                    <h3 class="@(Model.TotalRegistrations > 0 ? "text-warning" : "text-muted")">
+                                        @Model.TotalRegistrations
+                                    </h3>
+                                    <p class="mb-0">Total Event Registrations</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card @(Model.HasActiveRegistrations ? "border-danger" : "border-light")">
+                                <div class="card-body text-center">
+                                    <h3 class="@(Model.HasActiveRegistrations ? "text-danger" : "text-muted")">
+                                        @(Model.HasActiveRegistrations ? "YES" : "NO")
+                                    </h3>
+                                    <p class="mb-0">Active Registrations</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (Model.HasActiveRegistrations)
+                    {
+                        <div class="alert alert-danger" role="alert">
+                            <h6><i class="fas fa-ban"></i> Cannot Delete User</h6>
+                            This user has active event registrations. Please cancel their upcoming event registrations before deleting the user account.
+                        </div>
+                        
+                        <div class="text-center">
+                            <a asp-action="Details" asp-route-id="@Model.UserID" class="btn btn-info">
+                                <i class="fas fa-eye"></i> View User Details
+                            </a>
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-list"></i> Back to Users
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info" role="alert">
+                            <h6><i class="fas fa-info-circle"></i> Impact Assessment</h6>
+                            <ul class="mb-0">
+                                <li>User account will be permanently deleted</li>
+                                <li>@if(Model.TotalRegistrations > 0){<text>Historical registration data (@Model.TotalRegistrations registrations) will be removed</text>}else{<text>No registration data to remove</text>}</li>
+                                <li>This action cannot be undone</li>
+                                <li>User will lose access to the system immediately</li>
+                            </ul>
+                        </div>
+
+                        <form asp-action="Delete" method="post">
+                            <input type="hidden" asp-for="UserID" />
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="confirmDelete" required>
+                                <label class="form-check-label" for="confirmDelete">
+                                    I understand that this action is permanent and cannot be undone
+                                </label>
+                            </div>
+
+                            <div class="d-flex justify-content-between">
+                                <button type="submit" class="btn btn-danger" id="deleteButton" disabled>
+                                    <i class="fas fa-trash"></i> Delete User Permanently
+                                </button>
+                                <div>
+                                    <a asp-action="Details" asp-route-id="@Model.UserID" class="btn btn-info">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                    <a asp-action="Index" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i> Cancel
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <!-- Safety Tips -->
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6><i class="fas fa-shield-alt"></i> Safety Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-check-circle text-success"></i> Before Deleting</h6>
+                            <ul class="small">
+                                <li>Verify this is the correct user</li>
+                                <li>Ensure no active registrations</li>
+                                <li>Consider disabling instead of deleting</li>
+                                <li>Backup important data if needed</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb text-warning"></i> Alternatives</h6>
+                            <ul class="small">
+                                <li>Change user role to restrict access</li>
+                                <li>Update email to disable notifications</li>
+                                <li>Reset password to prevent login</li>
+                                <li>Export user data before deletion</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('confirmDelete').addEventListener('change', function() {
+        const deleteButton = document.getElementById('deleteButton');
+        deleteButton.disabled = !this.checked;
+        
+        if (this.checked) {
+            deleteButton.classList.remove('btn-secondary');
+            deleteButton.classList.add('btn-danger');
+        } else {
+            deleteButton.classList.remove('btn-danger');
+            deleteButton.classList.add('btn-secondary');
+        }
+    });
+</script> 
